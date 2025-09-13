@@ -1,0 +1,47 @@
+Italian システム 進捗メモ（最新版）
+最終更新: 2025-09-13
+
+1) 環境/基本設定
+- Java 8 / Tomcat 8.5（Pleiades の Tomcat8 (Java8) ランタイム）
+- DB: MySQL @ 127.0.0.1 / DB名: italian / ユーザー: root / パスワード: root
+- JDBC: Connector/J 8.4.0 を `src/main/webapp/WEB-INF/lib` に同梱
+- 文字コード: UTF-8（EncodingFilter + JSP pageEncoding + DB URL）
+- コンテキストルート: `Italian` / ウェルカム: `/home`（HomeServlet → `jsp/home.jsp`）
+
+2) ディレクトリ構成（要点）
+- `src/main/webapp/jsp`: 画面（home.jsp, menu.jsp, userIndex.jsp など）
+- `src/main/java/servlet`: サーブレット（Home, MenuPublic, Admin*, Reservation* など）
+- `src/main/java/dao`: DAO（MenuDAO, ReservationDAO, CustomerDAO, TableDAO, RememberTokenDAO など）
+- `src/main/java/filters`: フィルタ（EncodingFilter, CustomerAuthFilter, AdminAuthFilter）
+- `src/main/java/utils`: 共通（DB, PasswordUtil, TokenUtil）
+- `sql/ddl.sql`, `sql/seed.sql`: スキーマ & 初期データ
+
+3) 直近の主な変更（2025-09-13）
+- カテゴリ削除の不具合修正（何も表示されない）
+  - MenuDAO に `getCategoryById` 追加
+  - AdminMenuDeleteServlet: カテゴリ名を確認画面に表示、FK制約違反時はエラーメッセージで確認画面にフォワード
+  - menuDelete.jsp: カテゴリ名/エラー表示対応
+- UI 調整: 「有効」チェックボックスを左寄せ（menuInsert.jsp / menuUpdate.jsp / courseUpdate.jsp）
+- ホーム画面: GitHub（プロジェクト）ボタンを追加
+- ルート安定化: `index.jsp` を追加（`/` → `/home` リダイレクト）、welcome にフォールバック追加
+- フィルタ定義の一本化: `@WebFilter` を撤去、web.xml を優先（`metadata-complete="true"`）
+- 旧構成の掃除: 旧 `WebContent` を削除（実体は `src/main/webapp` に統一）
+
+4) 起動/配備トラブルの解消メモ
+1) Problems ビューのビルドエラー（他プロジェクト含む）を解消
+2) Deployment Assembly: `/src/main/webapp -> /`, `/src/main/java -> /WEB-INF/classes`（必要なら `build/classes -> /WEB-INF/classes` も追加）
+3) Java Build Path: Source `src/main/java`、出力 `build/classes`
+4) Servers: Stop → Clean Tomcat Work Directory → Project > Clean… → Start → Publish
+5) 配備先確認: `…/wtpwebapps/Italian/WEB-INF/classes/servlet/HomeServlet.class` が存在すること
+
+5) 今後のTODO
+- RememberMeFilter の再有効化（web.xml のコメント解除）。起動安定後に実施
+- 予約の時間刻み（UI 30分とサーバ 15分の整合）
+- 管理画面のメッセージ/バリデーション強化
+
+6) 動作確認エントリ
+- 公開メニュー: `/menu`
+- ログイン: `/login` → ユーザーメニュー: `jsp/userIndex.jsp`
+- 管理ログイン: `/admin/login`
+- 予約: `/reservations` 一式（一覧/新規/更新/取消）
+
